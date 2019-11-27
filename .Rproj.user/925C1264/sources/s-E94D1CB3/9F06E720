@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574885342996.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9F06E720",
+    "lastKnownWriteTime" : 1574885352,
+    "last_content_update" : 1574885352619,
+    "path" : "C:/Users/juraj/git_hub/RvesterInBrno/R/placeholder.R",
+    "project_path" : "R/placeholder.R",
+    "properties" : {
+        "cursorPosition" : "64,0",
+        "scrollLine" : "45"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

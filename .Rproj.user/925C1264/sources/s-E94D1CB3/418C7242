@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1574885355030.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "187429395",
+    "id" : "418C7242",
+    "lastKnownWriteTime" : 1562671580,
+    "last_content_update" : 1562671580,
+    "path" : "C:/Users/juraj/git_hub/RvesterInBrno/R/rvest_Brno.R",
+    "project_path" : "R/rvest_Brno.R",
+    "properties" : {
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,199 @@
+# the incremental inclusion of parts, as well as testing scripts
+library(tidyverse)
+library(rvest)
+
+
+
+#html_identifies help identify the substrings that contain the particular features, ie where it is
+# what the price is, whether its a room or a flat
+
+
+
+brno_houseprice_tool <- function(site,site_chaser = NULL, html_identifiers, num_of_pages){
+  final <- list()
+  for (i in c(1:num_of_pages)) 
+  {
+    miesto <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[1]) %>% 
+      html_text() %>% 
+      str_to_lower() %>% 
+      str_extract('(?<=(brno - )).+')
+    
+    
+    
+    
+  #  cena_pattern <- str_c("\\b", colors(), "\\b", collapse="|")
+    cena <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[2]) %>% 
+      html_text() %>% 
+      str_replace_all(pattern = "\\.|\\s", replacement = "") %>% 
+      str_extract(pattern = "[0-9]+") %>%
+      unlist() %>% 
+      as.numeric()
+    
+    type_dwelling_byt <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[3]) %>% 
+      html_text() %>% 
+      str_to_lower() %>% 
+      str_extract(pattern = coll("byt")) %>% 
+      as.factor() %>% 
+      recode("byt" = 1) %>% 
+      replace_na(replace = 0)
+    
+    
+    type_dwelling_pokoj <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[4]) %>% 
+      html_text() %>% 
+      str_to_lower() %>% 
+      str_extract(pattern = coll("pokoj")) %>% 
+      as.factor() %>% 
+      recode("pokoj" = 1) %>% 
+      replace_na(replace = 0)
+    
+    type_rooms_kk <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[5]) %>% 
+      html_text() %>% 
+      str_to_lower %>% 
+      str_extract('[1-9]\\+..')
+    
+    
+    
+    
+    is_garsoniery <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[6]) %>% 
+      html_text() %>% 
+      str_to_lower() %>% 
+      str_extract(coll("garsoniery"))
+    
+  
+      
+    sqr_meters <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[7]) %>% 
+      html_text() %>% 
+      str_to_lower() %>% 
+      str_extract('\\d\\d(?= m)|\\d\\d\\d(?= m)') %>% 
+      na.omit(T)
+    
+    other_text <- read_html(str_c(site,i,site_chaser)) %>%
+      html_nodes(html_identifiers[8]) %>% 
+      html_text() %>% 
+      str_to_lower()
+      
+      
+    
+    
+    final[[i]] <- matrix( data= NA, ncol = 9, nrow = max(length(miesto),
+                                                         length(cena),
+                                                         length(type_dwelling_byt),
+                                                         length(type_dwelling_pokoj),
+                                                         length(sqr_meters),
+                                                         length(other_text),
+                                                         length(is_garsoniery),
+                                                         length(type_rooms_kk))) %>% 
+      as.data.frame()
+    if (length(miesto) != 0) {
+      final[[i]][1:length(miesto),1] <- miesto
+      
+    }
+    if (length(cena)  != 0) {
+      final[[i]][1:length(cena),2] <- cena
+      
+    }
+    if (length(type_dwelling_byt)  != 0) {
+      final[[i]][1:length(type_dwelling_byt),3] <- type_dwelling_byt 
+      
+    }
+    if (length(type_dwelling_pokoj)  != 0) {
+      final[[i]][1:length(type_dwelling_pokoj),4] <- type_dwelling_pokoj
+      
+    }
+    if (length(type_rooms_kk)  != 0) {
+      final[[i]][1:length(type_rooms_kk),5] <- type_rooms_kk
+      
+    }
+    if (length(is_garsoniery)  != 0) {
+      final[[i]][1:length(is_garsoniery),6] <- is_garsoniery
+      
+    }
+    if (length(sqr_meters)  != 0) {
+      final[[i]][1:length(sqr_meters),7] <- sqr_meters
+      
+    }
+    if (length(other_text)  != 0) {
+      final[[i]][1:length(other_text),8] <- other_text
+      
+    }
+
+    final[[i]][,9] <- rep(str_c(site,i),length.out=(nrow(final[[i]])))
+    
+      
+      colnames(final[[i]]) <- c("Location", 
+                                "Price",
+                                "Flat",
+                                "Room",
+                                "Type",
+                                "Garsoniery",
+                                "Sqr_meters",
+                                "Other_Text",
+                                "Original_Site")
+  
+    
+    Sys.sleep(3.5)
+    
+  }
+  final <- bind_rows(final)
+  return(final)
+}
+
+
+example_html_identifiers <-c("#vypis_table .nem_box .nem_text h2 a", 
+                             "#vypis_table .nem_box .nem_text .cena",
+                             "#vypis_table .nem_box .nem_text h2",
+                             "#vypis_table .nem_box .nem_text h2",
+                             "#vypis_table .nem_box .nem_text",
+                             "#vypis_table .nem_box .nem_text",
+                             "#vypis_table .nem_box .nem_text",
+                             "#vypis_table .nem_box .nem_text") 
+
+
+test <- brno_houseprice_tool(site = "https://www.reality-brno.net/pronajem/byty/?strana=",
+                             html_identifier = example_html_identifiers,
+                             num_of_pages = 13)
+
+
+
+ulica <- read_html("https://reality.idnes.cz/s/pronajem/byty/brno-mesto/") %>%
+  html_nodes("article div div a p") %>% 
+  html_text() %>% 
+  str_to_lower() %>% 
+  str_extract('.+(?= brno)')
+
+
+miesto <- read_html(str_c(site_link_2,1)) %>%
+  html_nodes(html_identifiers[1]) %>% 
+  html_text() %>% 
+  str_to_lower() %>% 
+  str_extract('(?<=(brno - )).+')
+
+
+
+try <- read_html(str_c(site_link_6,1)) %>% 
+  html_nodes("html body div div div div div div div div div div div h2 a") %>% 
+  html_text()
+
+%>% 
+  str_subset('osob') %>% 
+  str_to_lower() %>% 
+  str_extract('\\d\\d(?= m)|\\d\\d\\d(?= m)|\\d\\d\\sm|\\d\\d\\sm') %>% 
+  str_extract('\\d\\d|\\d\\d\\d')
+
+%>% 
+  str_replace_all(pattern = "\\.|\\s", replacement = "") %>% 
+  str_extract(pattern = "[0-9]+") %>%
+  unlist() %>% 
+  as.numeric()
+
+
+try_2 <- try %>% 
+  str_replace_all(pattern = "\\n", replacement = "") %>% 
+  str_extract('\\d\\d(?= m)')
